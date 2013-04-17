@@ -1,4 +1,4 @@
 Syntax-Analyzer
 ===============
 
-A syntax analyzer for our groups final project
+A syntax analyzer for our group's final project
