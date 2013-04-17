@@ -2,7 +2,7 @@
  * Adam Childs, Bell Lopez, Tiffany Flor
  * April 17, 2013
  *
- * PLEDGED: The code in this program represents my own original work.
+ * PLEDGED: The code in this program represents my own original work because we're awesome.
  */
 #include <iostream>
 #include <cstdlib> // for exit() function
