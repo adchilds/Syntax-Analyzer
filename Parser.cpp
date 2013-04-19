@@ -2,7 +2,7 @@
  * Adam Childs, Bell Lopez, Tiffany Flor
  * April 17, 2013
  *
- * PLEDGED: The code in this program represents my own original work.
+ * PLEDGED: The code in this program represents our own original work.
  */
 #include <iostream>
 #include <cstdlib> // for exit() function
@@ -55,7 +55,7 @@ void Parser::obj()
 		cout << token << endl;
 		if (token == "->")
 		{
-			stmlist();
+			funclist();
 			token = getToken();
 			cout << token << endl;
 			if (token != ";")
@@ -116,6 +116,40 @@ void Parser::stm()
 	}
 }
 
+void Parser::funclist()
+{
+	string token = getToken();
+	// check if function
+	if (token == "func")
+	{
+		str = token + " " + str;
+		function();
+	}
+	// check if dec
+	else if (token == "any" || token == "def")
+	{
+		str = token + " " + str;
+		dec();
+	}
+	// check if array
+	else if (token == "arr")
+	{
+		str = token + " " + str;
+		array();
+	}
+	// check if use
+	else if (token == "use")
+	{
+		cout << "IN USE" << endl;
+		str = token + " " + str;
+		use();
+	}
+	// if nothing put token back
+	else {
+		str = token + " " + str;
+	}
+}
+
 void Parser::stmlist()
 {
 	string token = getToken();
@@ -125,7 +159,20 @@ void Parser::stmlist()
 		str = token + " " + str;
 		stm();
 		stmlist();
-	} else {
+	}
+	else if (token == "any" || token == "def")
+	{
+		str = token + " " + str;
+		dec();
+		stmlist();
+	}
+	else if (token == "arr")
+	{
+		str = token + " " + str;
+		array();
+		stmlist();
+	}
+	else {
 		str = token + " " + str;
 	}
 }
@@ -168,47 +215,335 @@ void Parser::if1()
 
 void Parser::elseif()
 {
-
+	string token = getToken();
+        if (token == "elseif")
+        {
+                exp();
+                token = getToken();
+                if (token == "->")
+                {
+                        stmlist();
+                        token = getToken();
+                        if (token == ";")
+                        {
+                                token = getToken();
+                                if (token == "elseif")
+                                {
+                                        str = token + " " + str;
+                                        elseif();
+                                }
+                                else if (token == "else")
+                                {
+                                        str = token + " " + str;
+                                        else1();
+                                }
+                                str = token + " " + str;
+                       } else {
+                                cout << "Missing ; in if statement." << endl;
+                                exit(1);
+                        }
+                } else {
+                        cout << "Missing -> in if statement." << endl;
+                        exit(1);
+                }
+        }
 }
 
 void Parser::else1()
 {
-
+	string token = getToken();
+	if (token == "else")
+	{
+		token = getToken();
+		if (token == "->")
+		{
+			stmlist();
+			token = getToken();
+			if (token != ";")
+			{
+				cout << "Missing ; in else statement." << endl;
+				exit(1);
+			}
+		} else {
+			cout << "Missing -> in else statement." << endl;
+		}
+	}
+		
 }
 
 void Parser::for1()
 {
+	string token = getToken();
+	if (token == "for")
+	{
+		var();
+		token = getToken();
+		if (token == "=")
+		{
+			exp();
+			token = getToken();
+			if (token == "(")
+			{
+				inc();
+				token = getToken();
+				if (token == ")")
+				{
+					exp();
+					token = getToken();
+					if (token == "->")
+					{
+						stmlist();
+						token = getToken();
+						if (token != ";")
+						{
+							cout << "Missing ; in for statement." << endl;
+							exit(1);
+						}
+					} else {
+						cout << "Missing -> in for statement." << endl;
+						exit(1);
+					}
+				} else {
+					cout << "Missing ) in for statement." << endl;
+					exit(1);
+				}
+			} else {
+				cout << "Missing ( in for statement." << endl;
+				exit(1);
+			}
+		} else {
+			cout << "Missing = in for statement." << endl;
+			exit(1);
+		}
+	}
+}
 
+void Parser::inc()
+{
+	string token = getToken();
+	if (token == "+" || token == "-")
+	{
+		exp();
+	} else {
+		cout << "Invalid increment value." << endl;
+		exit(1);
+	}
 }
 
 void Parser::foreach()
 {
-
+	string token = getToken();
+	if (token == "foreach")
+	{
+		var();
+		token = getToken();
+		if (token == "=")
+		{
+			exp();
+			token = getToken();
+			if (token == "in")
+			{
+				stmlist();
+			} else {
+				cout << "Missing \"in\" in foreach." << endl;
+				exit(1);
+			}
+		} else {
+			cout << "Missing = in foreach." << endl;
+			exit(1);
+		}
+	}
 }
 
 void Parser::while1()
 {
-
+	string token = getToken();
+	if (token == "while")
+	{
+		exp();
+		token = getToken();
+		if (token == "->")
+		{
+			stmlist();
+			token = getToken();
+			if (token != ";")
+			{
+				cout << "Missing ; in while." << endl;
+				exit(1);
+			}
+		} else {
+			cout << "Missing -> in while." << endl;
+			exit(1);
+		}
+	}	
 }
 
 void Parser::exec()
 {
-
+	string token = getToken();
+	if (token == "exec")
+	{
+		token = getToken();
+		if (token == "->")
+		{
+			stmlist();
+			token = getToken();
+			if (token == ";")
+			{
+				token = getToken();
+				if (token == "while")
+				{
+					exp();
+					token = getToken();
+					if (token != ";")
+					{
+						cout << "Missing ; in exec statement." << endl;
+						exit(1);
+					}
+				} else {
+					cout << "Missing \"while\" in exec statement." << endl;
+					exit(1);
+				}
+			} else {
+				cout << "Missing ; in exec statement." << endl;
+				exit(1);
+			}
+		} else {
+			cout << "Missing -> in exec statement." << endl;
+			exit(1);
+		}
+	}
 }
 
 void Parser::return1()
 {
-
+	string token = getToken();
+	if (token == "return")
+	{
+		token = getToken();
+		if (token != ";")
+		{
+			str = token + " " + str;
+			val();
+		}
+	}
 }
 
 void Parser::use()
 {
+	string token = getToken();
+	if (token == "use")
+	{
+		import();
+		token = getToken();
+		if (token != ";")
+		{
+			cout << "TOKEN: " << token << endl;
+			cout << "Missing ; in use statement." << endl;
+			exit(1);
+		}
+	}
+}
 
+void Parser::import()
+{
+	idword();
+	string token = getToken();
+	if (token == ".")
+	{
+		import();
+	} else {
+		str = token + " " + str;
+	}
+	cout << "IMPORT FINE!" << endl;
 }
 
 void Parser::exp()
 {
+	// HARDDDDD!
+}
 
+void Parser::var()
+{
+	string token = getToken();
+	if (token == "any")
+	{
+		id();
+		token = getToken();
+		if (token == "=")
+		{
+			val();
+		} else {
+			str = token + " " + str;
+		}
+	}
+	else if (token == "def")
+	{
+		id();
+		token = getToken();
+		if (token == "=")
+		{
+			val();
+		} else {
+			cout << "Missing = in def statement." << endl;
+			exit(1);
+		}
+	} else {
+		cout << "Incorrect syntax for variable declaration in function parameters." << endl;
+		exit(1);
+	}
+}
+
+void Parser::dec()
+{
+	string token = getToken();
+        if (token == "any")
+        {
+                id();
+                token = getToken();
+                if (token == "=")
+                {
+                        val();
+			token = getToken();
+			if (token != ";")
+			{
+				cout << "Missing ; in variable declaration." << endl;
+				exit(1);
+			}
+                }
+		else if (token != ";")
+		{
+                        cout << "Incorrect syntax for variable declaration." << endl;
+			exit(1);
+                }
+        }
+        else if (token == "def")
+        {
+                id();
+                token = getToken();
+                if (token == "=")
+                {
+                        val();
+			token = getToken();
+			if (token != ";")
+			{
+				cout << "Missing ; in constant declaration." << endl;
+				exit(1);
+			}
+                } else {
+                        cout << "Missing = in constant declaration." << endl;
+                        exit(1);
+                }
+        } else {
+                cout << "Incorrect syntax for variable declaration." << endl;
+                exit(1);
+        }
+}
+
+void Parser::val()
+{
+	string token = getToken();
+//	HARD!
 }
 
 void Parser::id()
@@ -218,6 +553,20 @@ void Parser::id()
 	cout << token << endl;
 }
 
+void Parser::array()
+{
+
+}
+
+void Parser::idword()
+{
+
+}
+
+void Parser::function()
+{
+
+}
 
 bool Parser::num(string s)
 {
@@ -231,9 +580,9 @@ bool Parser::num(string s)
 	return false;
 }
 
-bool Parser::var(string s)
+bool Parser::character(string s)
 {
-	string valid = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+	string valid = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
 	if (s.length() == 0)
 		return false;

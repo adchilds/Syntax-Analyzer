@@ -1,12 +1,12 @@
 all: syntax_analyzer
 
-syntax_analyzer: main.o parser.o
-	g++ main.o parser.o -o syntax_analyzer
+syntax_analyzer: main.o Parser.o
+	g++ main.o Parser.o -o syntax_analyzer
 
 main.o: main.cpp
 	g++ -c main.cpp
 
-parser.o: Parser.cpp
+Parser.o: Parser.cpp
 	g++ -c Parser.cpp
 
 clean:

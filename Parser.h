@@ -2,8 +2,9 @@
  * Adam Childs, Bell Lopez, Tiffany Flor
  * April 15, 2013
  *
- * PLEDGED: The code in this program represents my own original work.
+ * PLEDGED: The code in this program represents our own original work.
  */
+
 #include <string>
 
 #ifndef PARSER_H
@@ -49,6 +50,8 @@ class Parser
 
 		void stm();
 
+		void funclist();
+
 		void stmlist();
 
 		void if1();
@@ -91,7 +94,9 @@ class Parser
 
 		void symbols();
 
-		void word();
+		void idword();
+
+		void stringword();
 
 		void string1();
 
@@ -124,7 +129,7 @@ class Parser
 		 *
 		 * @param string: the variable to match against
 		 */
-		bool var(string);
+		bool character(string);
 
 		string str; // The string to be parsed
 };
