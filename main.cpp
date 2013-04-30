@@ -12,8 +12,6 @@ using namespace std;		// uses standard library space
 
 int main(int argc, const char* argv[])
 {
-	string s; // String to parse
-
 	if (argc > 1) // File supplied
 	{
 		cout << "FILE SUPPLIED: " << argv[1] << endl;
@@ -22,13 +20,8 @@ int main(int argc, const char* argv[])
 		Parser p(argv[1]);
 		p.parse();
 	} else { // String supplied
-		cout << "Please enter a valid string to parse:" << endl;
-		getline(cin, s);
-
-		Parser p(s);
+		Parser p;
 		p.parse();
-
-		cout << "PARSING ENDED" << endl;
 	}
 
 	return 0;

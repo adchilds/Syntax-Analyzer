@@ -1,1 +1,5 @@
-obj Test ->   ;
+obj Test ->
+	func test ( ) ->
+		
+	;
+;

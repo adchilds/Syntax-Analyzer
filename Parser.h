@@ -20,6 +20,19 @@ class Parser
 		 * verify that the given string is formatted
 		 * correctly for the language's grammar.
 		 *
+		 * This constructor is used for parsing a string
+		 * from the command line, entered at runtime.
+		 */
+		Parser();
+
+		/**
+		 * The Parser class contains helper functions that
+		 * verify that the given string is formatted
+		 * correctly for the language's grammar.
+		 *
+		 * This constructor is used for parsing a string
+		 * from a file with the ".name" extension.
+		 *
 		 * @param string: The string to parse
 		 */
 		Parser(string);

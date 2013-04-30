@@ -11,6 +11,17 @@
 
 using namespace std;
 
+Parser::Parser()
+{
+	string s; // String to parse
+
+	cout << "Please enter a valid string to parse: " << endl;
+	getline(cin, s);
+	str = s;
+
+	cout << str << endl;
+}
+
 Parser::Parser(string s)
 {
 	ifstream ifs(s.c_str());
@@ -41,26 +52,27 @@ string Parser::getToken()
 		temp = str.substr(0, v);
 		str = str.substr((v+1), str.length());
 
+		// Ensure that the string is not empty, if it is, return the last token
+		if (str.length() == 0)
+			return temp;
+
 		// Check for more spaces, tabs, and newlines
 		char t = lookahead();
-		cout << "T: \"" << t << "\"" << endl;
 		while(t == ' ' || t == '\n' || t == '\t')
 		{
 			// Remove t from str
-			str = str.substr(str.find(t)+1, str.length());
+			str = str.substr(1, str.length());
 
 			if (str.length() > 0)
 				t = lookahead();
 			else
 				break;
-			cout << "In while" << endl;
 		}
 	} else { // Space, tab, or newline NOT found
 		temp = str;
 		str = "";
 	}
 
-//	cout << "String: " << str << endl;
 	return temp;
 }
 
@@ -303,7 +315,6 @@ void Parser::else1()
 			cout << "Missing -> in else statement." << endl;
 		}
 	}
-		
 }
 
 void Parser::for1()
@@ -410,7 +421,7 @@ void Parser::while1()
 			cout << "Missing -> in while." << endl;
 			exit(1);
 		}
-	}	
+	}
 }
 
 void Parser::exec()
@@ -460,6 +471,12 @@ void Parser::return1()
 		{
 			str = token + " " + str;
 			val();
+			token = getToken();
+			if (token != ";")
+			{
+				cout << "Missing ; in return statement" << endl;
+				exit(1);
+			}
 		}
 	}
 }
