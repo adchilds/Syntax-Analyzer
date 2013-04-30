@@ -25,6 +25,15 @@ class Parser
 		Parser(string);
 
 		/**
+		 * The Parser class contains helper functions that
+		 * verify if the given string is formatted
+		 * correctly for the language's grammer.
+		 *
+		 * @param ifstream: The filename of the file to parse
+		 */
+		Parser(ifstream);
+
+		/**
 		 * Parses the Parser instance's string to make sure that it
 		 * follows the specified grammar for the language.
 		 */
@@ -42,6 +51,8 @@ class Parser
 		 * of whitespace.
 		 */
 		string getToken();
+
+		char lookahead();
 
 		// CFG functions
 		void program();

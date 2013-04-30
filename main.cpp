@@ -18,12 +18,17 @@ int main(int argc, const char* argv[])
 	{
 		cout << "FILE SUPPLIED: " << argv[1] << endl;
 		cout << "Argument count: " << (argc-1) << endl;
+
+		Parser p(argv[1]);
+		p.parse();
 	} else { // String supplied
 		cout << "Please enter a valid string to parse:" << endl;
 		getline(cin, s);
 
 		Parser p(s);
 		p.parse();
+
+		cout << "PARSING ENDED" << endl;
 	}
 
 	return 0;

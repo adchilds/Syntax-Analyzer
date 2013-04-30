@@ -5,6 +5,7 @@
  * PLEDGED: The code in this program represents our own original work.
  */
 #include <iostream>
+#include <fstream>
 #include <cstdlib> // for exit() function
 #include "Parser.h"
 
@@ -12,7 +13,15 @@ using namespace std;
 
 Parser::Parser(string s)
 {
-	str = s;
+	ifstream ifs(s.c_str());
+	if (ifs.is_open())
+	{
+		str.assign(istreambuf_iterator<char>(ifs), istreambuf_iterator<char>());
+		ifs.close();
+	} else
+		str = s;
+
+	cout << str << endl;
 }
 
 string Parser::getToken()
@@ -20,18 +29,44 @@ string Parser::getToken()
 	// Check for " " and "\n"
 	string::size_type v = str.find(" ");
 	if (v == string::npos) // space not found, so look for \n
+	{
 		v = str.find("\n");
+		if (v == string::npos) // newline not found, look for \t
+			v = str.find("\t");
+	}
 
 	string temp = "";
-	if (v != string::npos) // Space or newline found
+	if (v != string::npos) // Space, tab, or newline found
 	{
 		temp = str.substr(0, v);
 		str = str.substr((v+1), str.length());
-	} else { // Space or newline NOT found
+
+		// Check for more spaces, tabs, and newlines
+		char t = lookahead();
+		cout << "T: \"" << t << "\"" << endl;
+		while(t == ' ' || t == '\n' || t == '\t')
+		{
+			// Remove t from str
+			str = str.substr(str.find(t)+1, str.length());
+
+			if (str.length() > 0)
+				t = lookahead();
+			else
+				break;
+			cout << "In while" << endl;
+		}
+	} else { // Space, tab, or newline NOT found
 		temp = str;
 		str = "";
 	}
+
+//	cout << "String: " << str << endl;
 	return temp;
+}
+
+char Parser::lookahead()
+{
+	return str.at(0);
 }
 
 void Parser::parse()
