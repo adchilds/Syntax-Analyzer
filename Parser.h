@@ -59,6 +59,13 @@ class Parser
 
 	private:
 		/**
+		 * Finds the minimum value between two integers.
+		 *
+		 * @return the smaller value
+		 */
+		int min(int, int, int);
+
+		/**
 		 * Gets the next available token in the string. Essentially
 		 * takes the characters from index 0 to the first occurrence
 		 * of whitespace.

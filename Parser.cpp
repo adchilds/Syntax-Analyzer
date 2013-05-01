@@ -7,6 +7,7 @@
 #include <iostream>
 #include <fstream>
 #include <cstdlib> // for exit() function
+#include <ctype.h>
 #include "Parser.h"
 
 using namespace std;
@@ -35,16 +36,32 @@ Parser::Parser(string s)
 	cout << str << endl;
 }
 
+int Parser::min(int a, int b, int c)
+{
+	if (a == -1 && b == -1 && c == -1)
+		return -1;
+	if (a == -1)
+		a = 200000000;
+	if (b == -1)
+		b = 200000000;
+	if (c == -1)
+		c = 200000000;
+
+	if (a < b && a < c)
+		return a;
+	else if (b < c)
+		return b;
+	return c;
+}
+
 string Parser::getToken()
 {
 	// Check for " " and "\n"
-	string::size_type v = str.find(" ");
-	if (v == string::npos) // space not found, so look for \n
-	{
-		v = str.find("\n");
-		if (v == string::npos) // newline not found, look for \t
-			v = str.find("\t");
-	}
+	int space = str.find(" ");
+	int tab = str.find("\t");
+	int nl = str.find("\n");
+
+	int v = min(space, tab, nl);
 
 	string temp = "";
 	if (v != string::npos) // Space, tab, or newline found
@@ -58,7 +75,7 @@ string Parser::getToken()
 
 		// Check for more spaces, tabs, and newlines
 		char t = lookahead();
-		while(t == ' ' || t == '\n' || t == '\t')
+		while(isspace(t))
 		{
 			// Remove t from str
 			str = str.substr(1, str.length());
