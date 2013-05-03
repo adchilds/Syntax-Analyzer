@@ -59,7 +59,7 @@ class Parser
 
 	private:
 		/**
-		 * Finds the minimum value between two integers.
+		 * Finds the minimum value between three integers.
 		 *
 		 * @return the smaller value
 		 */
