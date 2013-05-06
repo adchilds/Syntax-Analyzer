@@ -487,7 +487,7 @@ void Parser::return1()
 		if (token != ";")
 		{
 			str = token + " " + str;
-			val();
+			exp();
 			token = getToken();
 			if (token != ";")
 			{
@@ -529,7 +529,40 @@ void Parser::import()
 
 void Parser::exp()
 {
-	// HARDDDDD!
+	// hardddddddddddddddddddddddddddddddddddd_______________!
+}
+
+void Parser::arithexp()
+{
+/*	We have an issue here. Ignore the code below. But the grammar
+	keeps wrapping back into itself here. I'm having an issue
+	figuring out how to write it.
+
+	exp();
+	string token = getToken();
+	if (token == "+" || token == "-" || token == "*" || token == "/")
+	{
+		exp();
+	}
+	else if (token == INT || token == FLOAT) // these are just notes: look below
+	// to enter rest of else if
+
+	else {
+		cout << "Missing +, -, *, or / in expression." << endl;
+                exit(1);
+        }
+*/
+}
+
+void Parser:boolexp()
+{
+// NEED TO DO!!!!
+}
+
+void Parser::arithval()
+{
+
+// NEED TO DO!
 }
 
 void Parser::var()
@@ -538,28 +571,6 @@ void Parser::var()
 	if (token == "any")
 	{
 		id();
-		token = getToken();
-		if (token == "=")
-		{
-			val();
-		} else {
-			str = token + " " + str;
-		}
-	}
-	else if (token == "def")
-	{
-		id();
-		token = getToken();
-		if (token == "=")
-		{
-			val();
-		} else {
-			cout << "Missing = in def statement." << endl;
-			exit(1);
-		}
-	} else {
-		cout << "Incorrect syntax for variable declaration in function parameters." << endl;
-		exit(1);
 	}
 }
 
@@ -572,7 +583,7 @@ void Parser::dec()
                 token = getToken();
                 if (token == "=")
                 {
-                        val();
+                        exp();
 			token = getToken();
 			if (token != ";")
 			{
@@ -592,7 +603,7 @@ void Parser::dec()
                 token = getToken();
                 if (token == "=")
                 {
-                        val();
+                        exp();
 			token = getToken();
 			if (token != ";")
 			{
@@ -607,12 +618,6 @@ void Parser::dec()
                 cout << "Incorrect syntax for variable declaration." << endl;
                 exit(1);
         }
-}
-
-void Parser::val()
-{
-	string token = getToken();
-//	HARD!
 }
 
 void Parser::id()
@@ -630,6 +635,36 @@ void Parser::array()
 void Parser::idword()
 {
 
+}
+
+void Parser::stringword()
+{
+
+}
+
+void Parser::string()
+{
+	string token = getToken();
+	if (token == "\"")
+	{
+		stringword();
+		token = getToken();
+		if (token != "\"")
+		{
+		cout << "Missing \" in string declaration." << endl;
+                exit(1);
+		}
+	} else {
+		cout << "Missing \" in string declaration." << endl;
+	}
+}
+
+void Parser::boolean()
+{
+	string token = getToken();
+	if (token == "true")
+	{
+					///////////////////CURRENTLY WORKING HERE///////
 }
 
 void Parser::function()

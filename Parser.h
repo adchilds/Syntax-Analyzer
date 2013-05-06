@@ -109,11 +109,15 @@ class Parser
 
 		void exp();
 
+		void arithexp();
+
+		void boolexp();
+
+		void arithval();
+
 		void var();
 
 		void dec();
-
-		void val();
 
 		void num();
 
