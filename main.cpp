@@ -15,7 +15,6 @@ int main(int argc, const char* argv[])
 	if (argc > 1) // File supplied
 	{
 		cout << "FILE SUPPLIED: " << argv[1] << endl;
-		cout << "Argument count: " << (argc-1) << endl;
 
 		Parser p(argv[1]);
 		p.parse();
