@@ -204,7 +204,6 @@ void Parser::funclist()
 	// check if use
 	else if (token == "use")
 	{
-		cout << "IN USE" << endl;
 		str = token + " " + str;
 		use();
 	}
@@ -246,7 +245,7 @@ void Parser::if1()
 	string token = getToken();
 	if (token == "if")
 	{
-		exp();
+		boolexp();
 		token = getToken();
 		if (token == "->")
 		{
@@ -280,37 +279,38 @@ void Parser::if1()
 void Parser::elseif()
 {
 	string token = getToken();
-        if (token == "elseif")
-        {
-                exp();
-                token = getToken();
-                if (token == "->")
-                {
-                        stmlist();
-                        token = getToken();
-                        if (token == ";")
-                        {
-                                token = getToken();
-                                if (token == "elseif")
-                                {
-                                        str = token + " " + str;
-                                        elseif();
-                                }
-                                else if (token == "else")
-                                {
-                                        str = token + " " + str;
-                                        else1();
-                                }
-                                str = token + " " + str;
-                       } else {
-                                cout << "Missing ; in if statement." << endl;
-                                exit(1);
-                        }
-                } else {
-                        cout << "Missing -> in if statement." << endl;
-                        exit(1);
-                }
-        }
+
+	if (token == "elseif")
+	{
+		boolexp();
+		token = getToken();
+		if (token == "->")
+		{
+			stmlist();
+			token = getToken();
+			if (token == ";")
+			{
+				token = getToken();
+				if (token == "elseif")
+				{
+					str = token + " " + str;
+					elseif();
+				}
+				else if (token == "else")
+				{
+					str = token + " " + str;
+					else1();
+				}
+				str = token + " " + str;
+			} else {
+				cout << "Missing ; in if statement." << endl;
+				exit(1);
+			}
+		} else {
+			cout << "Missing -> in if statement." << endl;
+			exit(1);
+		}
+	}
 }
 
 void Parser::else1()
@@ -423,7 +423,7 @@ void Parser::while1()
 	string token = getToken();
 	if (token == "while")
 	{
-		exp();
+		boolexp();
 		token = getToken();
 		if (token == "->")
 		{
@@ -456,7 +456,7 @@ void Parser::exec()
 				token = getToken();
 				if (token == "while")
 				{
-					exp();
+					boolexp();
 					token = getToken();
 					if (token != ";")
 					{
@@ -507,7 +507,6 @@ void Parser::use()
 		token = getToken();
 		if (token != ";")
 		{
-			cout << "TOKEN: " << token << endl;
 			cout << "Missing ; in use statement." << endl;
 			exit(1);
 		}
@@ -524,45 +523,57 @@ void Parser::import()
 	} else {
 		str = token + " " + str;
 	}
-	cout << "IMPORT FINE!" << endl;
 }
 
 void Parser::exp()
 {
-	// hardddddddddddddddddddddddddddddddddddd_______________!
+
 }
 
 void Parser::arithexp()
 {
-/*	We have an issue here. Ignore the code below. But the grammar
-	keeps wrapping back into itself here. I'm having an issue
-	figuring out how to write it.
-
-	exp();
 	string token = getToken();
-	if (token == "+" || token == "-" || token == "*" || token == "/")
+	if (is_integer(token) || is_float(token))
+		return;
+	else
 	{
+		str = token + " " + str; // Put the token back (not an int or float)
 		exp();
+		token = getToken();
+		if (token == "+" || token == "-" || token == "*" || token == "/")
+			exp();
+		else
+		{
+			cout << "Arithmetic syntax error! Missing +, -, *, or /." << endl;
+			exit(1);
+		}
 	}
-	else if (token == INT || token == FLOAT) // these are just notes: look below
-	// to enter rest of else if
-
-	else {
-		cout << "Missing +, -, *, or / in expression." << endl;
-                exit(1);
-        }
-*/
 }
 
-void Parser:boolexp()
+void Parser::boolexp()
 {
-// NEED TO DO!!!!
+	string token = getToken();
+	if (is_boolean(token))
+		return;
+	else
+	{
+		str = token + " " + str; // Put the token back (not a boolean)
+		exp();
+		token = getToken();
+		if (token == "==" || token == "!=" || token == ">" ||
+			token == "<" || token == ">=" || token == "<=")
+		{
+			exp();
+		} else {
+			cout << "Boolean expression syntax error! Missing ==, !=, >, <, >=, or <=." << endl;
+			exit(1);
+		}
+	}
 }
 
 void Parser::arithval()
 {
 
-// NEED TO DO!
 }
 
 void Parser::var()
@@ -577,64 +588,149 @@ void Parser::var()
 void Parser::dec()
 {
 	string token = getToken();
-        if (token == "any")
-        {
-                id();
-                token = getToken();
-                if (token == "=")
-                {
-                        exp();
+	if (token == "any")
+	{
+		id();
+		token = getToken();
+		if (token == "=")
+		{
+			exp();
 			token = getToken();
 			if (token != ";")
 			{
 				cout << "Missing ; in variable declaration." << endl;
 				exit(1);
 			}
-                }
+		}
 		else if (token != ";")
 		{
-                        cout << "Incorrect syntax for variable declaration." << endl;
+			cout << "Incorrect syntax for variable declaration." << endl;
 			exit(1);
-                }
-        }
-        else if (token == "def")
-        {
-                id();
-                token = getToken();
-                if (token == "=")
-                {
-                        exp();
+		}
+	}
+	else if (token == "def")
+	{
+		id();
+		token = getToken();
+		if (token == "=")
+		{
+			exp();
 			token = getToken();
 			if (token != ";")
 			{
 				cout << "Missing ; in constant declaration." << endl;
 				exit(1);
 			}
-                } else {
-                        cout << "Missing = in constant declaration." << endl;
-                        exit(1);
-                }
-        } else {
-                cout << "Incorrect syntax for variable declaration." << endl;
-                exit(1);
-        }
+		} else {
+			cout << "Missing = in constant declaration." << endl;
+			exit(1);
+		}
+	} else {
+		cout << "Incorrect syntax for variable declaration." << endl;
+		exit(1);
+	}
 }
 
 void Parser::id()
 {
-	string token = getToken();
+	idword();
 
-	cout << token << endl;
+	string temp(1, lookahead());
+	while (is_integer(temp))
+	{
+		
+	}
 }
 
 void Parser::array()
+{
+	string token = getToken();
+
+	if (token == "arr")
+	{
+		id();
+		token = getToken();
+		if (token == "->")
+		{
+			dimens();
+			token = getToken();
+			if (token != ";")
+			{
+				cout << "Missing ; in array definition." << endl;
+				exit(1);
+			}
+		}
+		else if (token == "[")
+		{
+			token = getToken();
+			if (is_integer(token))
+			{
+				token = getToken();
+				if (token == "]")
+				{
+					token = getToken();
+					if (token != ";")
+					{
+						token = getToken();
+						if (token == "[")
+						{
+							token = getToken();
+							if (is_integer(token))
+							{
+								token = getToken();
+								if (token == "]")
+								{
+									token = getToken();
+									if (token != ";")
+									{
+										cout << "Missing ; in array declaration." << endl;
+										exit(1);
+									}
+								} else {
+									cout << "Missing ] in array declaration." << endl;
+									exit(1);
+								}
+							} else {
+								cout << "Expected integer in array size declaration." << endl;
+								exit(1);
+							}
+						} else {
+							cout << "Missing [ or ; in array declaration." << endl;
+							exit(1);
+						}
+					}
+				} else {
+					cout << "Missing ] in array declaration." << endl;
+					exit(1);
+				}
+			} else {
+				cout << "Expected integer in array size declaration." << endl;
+				exit(1);
+			}
+		} else {
+			cout << "Missing [ in array declaration." << endl;
+			exit(1);
+		}
+	}
+}
+
+void Parser::dimens()
 {
 
 }
 
 void Parser::idword()
 {
-
+	string token = getToken();
+	if (character(token))
+	{
+		string temp(1, lookahead());
+		if (character(temp))
+			idword();
+	} else {
+		cout << "Invalid identifier: " << token << endl;
+		exit(1);
+	}
 }
 
 void Parser::stringword()
@@ -642,7 +738,7 @@ void Parser::stringword()
 
 }
 
-void Parser::string()
+void Parser::string1()
 {
 	string token = getToken();
 	if (token == "\"")
@@ -651,23 +747,61 @@ void Parser::string()
 		token = getToken();
 		if (token != "\"")
 		{
-		cout << "Missing \" in string declaration." << endl;
-                exit(1);
+			cout << "Missing closing \" in string declaration." << endl;
+			exit(1);
 		}
 	} else {
-		cout << "Missing \" in string declaration." << endl;
+		cout << "Missing opening \" in string declaration." << endl;
 	}
 }
 
-void Parser::boolean()
+bool Parser::is_boolean(string s)
 {
-	string token = getToken();
-	if (token == "true")
-	{
-					///////////////////CURRENTLY WORKING HERE///////
+	if (s != "true" || s != "false")
+		return false;
+	return true;
 }
 
 void Parser::function()
+{
+	string token = getToken();
+
+	if (token == "func")
+	{
+		id();
+		token = getToken();
+		if (token == "(")
+		{
+			parameters();
+			token = getToken();
+			if (token == ")")
+			{
+				token = getToken();
+				if (token == "->")
+				{
+					stmlist();
+					token = getToken();
+					if (token != ";")
+					{
+						cout << "Missing ; in function definition" << endl;
+						exit(1);
+					}
+				} else {
+					cout << "Missing -> in function definition" << endl;
+					exit(1);
+				}
+			} else {
+				cout << "Missing ) in function definition" << endl;
+				exit(1);
+			}
+		} else {
+			cout << "Missing ( in function definition" << endl;
+			exit(1);
+		}
+	}
+}
+
+void Parser::parameters()
 {
 
 }
@@ -694,6 +828,54 @@ bool Parser::character(string s)
 	if (string::npos != valid.find(s))
 		return true;
 	return false;
+}
+
+bool Parser::symbols(string s)
+{
+	string valid = ",<.>/?;:\'\"\\|]}[{=+-_)(*&^%$#@!~`";
+
+	if (s.length() == 0)
+		return false;
+
+	if (string::npos != valid.find(s))
+		return true;
+	return false;
+}
+
+bool Parser::is_integer(string s)
+{
+	for (int i = 0; i < s.length(); i++)
+	{
+		if (isdigit(s[i]))
+			continue;
+		return false;
+	}
+	return true;
+}
+
+bool Parser::is_float(string s)
+{
+	int period_count = 0;
+	for (int i = 0; i < s.length(); i++)
+	{
+		if (s[i] == '.')
+		{
+			if (period_count < 1)
+			{
+				period_count++;
+				continue;
+			} else {
+				return false;
+			}
+		}
+
+		if (!isdigit(s[i]))
+			return false;
+	}
+
+	if (period_count != 1)
+		return false;
+	return true;
 }
 
 void Parser::print()

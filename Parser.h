@@ -135,8 +135,6 @@ class Parser
 
 		void string1();
 
-		void boolean();
-
 		void id();
 
 		void parameters();
@@ -165,6 +163,34 @@ class Parser
 		 * @param string: the variable to match against
 		 */
 		bool character(string);
+
+		/**
+		 * Checks to see if the given string matches a valid symbol
+		 * for a character.
+		 */
+		bool symbols(string);
+
+		/**
+		 * Checks to see if the given string is an integer.
+		 *
+		 * @param string: the string to match against
+		 */
+		bool is_integer(string);
+
+		/**
+		 * Checks to see if the given string is a float.
+		 *
+		 * @param string: the string to match against
+		 */
+		bool is_float(string);
+
+		/**
+		 * Checks to see if the given string is a boolean
+		 * value (<code>true</code> or <code>false</code>
+		 *
+		 * @param string: the string to match against
+		 */
+		bool is_boolean(string);
 
 		string str; // The string to be parsed
 };
