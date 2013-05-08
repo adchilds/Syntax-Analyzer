@@ -1,5 +1,6 @@
-obj			 Test      ->
+use java.util.Random ;
+use javax.swing ;
 
-
+obj Test ->
 
 ;

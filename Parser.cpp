@@ -71,8 +71,10 @@ string Parser::getToken()
 
 		// Ensure that the string is not empty, if it is, return the last token
 		if (str.length() == 0)
+		{
+			cout << temp << endl;
 			return temp;
-
+		}
 		// Check for more spaces, tabs, and newlines
 		char t = lookahead();
 		while(isspace(t))
@@ -90,6 +92,7 @@ string Parser::getToken()
 		str = "";
 	}
 
+	cout << temp << endl;
 	return temp;
 }
 
@@ -105,23 +108,31 @@ void Parser::parse()
 
 void Parser::program()
 {
+	uses();
 	obj();
 }
 
+void Parser::uses()
+{
+	string token = getToken();
+	if (token == "use")
+	{
+		use();
+		uses();
+	} else
+		str = token + " " + str;
+}
 void Parser::obj()
 {
 	string token = getToken();
-	cout << token << endl;
 	if (token == "obj")
 	{
 		id();
 		token = getToken();
-		cout << token << endl;
 		if (token == "->")
 		{
 			funclist();
 			token = getToken();
-			cout << token << endl;
 			if (token != ";")
 			{
 				cout << "; is missing in object definition." << endl;
@@ -200,12 +211,6 @@ void Parser::funclist()
 	{
 		str = token + " " + str;
 		array();
-	}
-	// check if use
-	else if (token == "use")
-	{
-		str = token + " " + str;
-		use();
 	}
 	// if nothing put token back
 	else {
@@ -501,27 +506,25 @@ void Parser::return1()
 void Parser::use()
 {
 	string token = getToken();
-	if (token == "use")
+	if (character(string(1, token[0])))
 	{
-		import();
-		token = getToken();
-		if (token != ";")
+		for (int i = 1; i < token.length(); i++)
 		{
-			cout << "Missing ; in use statement." << endl;
-			exit(1);
+			if (!character(string(1, token[i])) && token[i] != '.')
+			{
+				cout << "Invalid import: " << token << endl;
+				exit(1);
+			}
 		}
-	}
-}
-
-void Parser::import()
-{
-	idword();
-	string token = getToken();
-	if (token == ".")
-	{
-		import();
 	} else {
-		str = token + " " + str;
+		cout << "Invalid import: " << token << endl;
+		exit(1);
+	}
+	token = getToken();
+	if (token != ";")
+	{
+		cout << "Missing ; in use statement." << endl;
+		exit(1);
 	}
 }
 
@@ -633,12 +636,21 @@ void Parser::dec()
 
 void Parser::id()
 {
-	idword();
+	string token = getToken();
 
-	string temp(1, lookahead());
-	while (is_integer(temp))
+	if (character(string(1, token[0])))
 	{
-		
+		for (int i = 1; i < token.length(); i++)
+		{
+			if (!character(string(1, token[i])) && !is_integer(string(1, token[i])))
+			{
+				cout << "Invalid identifier: " << token << endl;
+				exit(1);
+			}
+		}
+	} else {
+		cout << "Invalid identifier: " << token << endl;
+		exit(1);
 	}
 }
 
@@ -717,20 +729,6 @@ void Parser::array()
 void Parser::dimens()
 {
 
-}
-
-void Parser::idword()
-{
-	string token = getToken();
-	if (character(token))
-	{
-		string temp(1, lookahead());
-		if (character(temp))
-			idword();
-	} else {
-		cout << "Invalid identifier: " << token << endl;
-		exit(1);
-	}
 }
 
 void Parser::stringword()
@@ -825,9 +823,10 @@ bool Parser::character(string s)
 	if (s.length() == 0)
 		return false;
 
-	if (string::npos != valid.find(s))
-		return true;
-	return false;
+	for (int i = 0; i < s.length(); i++)
+		if (string::npos == valid.find(s[i]))
+			return false;
+	return true;
 }
 
 bool Parser::symbols(string s)
@@ -882,3 +881,10 @@ void Parser::print()
 {
 	cout << str << endl;
 }
+
+/*
+ ADD ASSIGNMENT STATEMENT
+i.e.
+
+x = 5
+*/

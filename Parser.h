@@ -103,6 +103,8 @@ class Parser
 
 		void return1();
 
+		void uses();
+
 		void use();
 
 		void import();
@@ -128,8 +130,6 @@ class Parser
 		void character();
 
 		void symbols();
-
-		void idword();
 
 		void stringword();
 
