@@ -122,6 +122,7 @@ void Parser::uses()
 	} else
 		str = token + " " + str;
 }
+
 void Parser::obj()
 {
 	string token = getToken();
@@ -528,28 +529,97 @@ void Parser::use()
 	}
 }
 
+void Parser::assign()
+{
+	id();
+
+	string token = getToken();
+	if (token == "=")
+	{
+		if (character(token))
+		{
+			str = token + " " + str;
+			stringexp();
+			token = getToken();
+			if (token != ";")
+			{
+				cout << "Missing ; in assignment." << endl;
+				exit(1);
+			}
+		} else {
+			str = token + " " + str;
+			exp();
+			token = getToken();
+			if (token !=  ";")
+			{
+				cout << "Missing ; in assignment." << endl;
+				exit(1);
+			}
+		}
+	} else {
+		cout << "Missing = in assignment." << endl;
+		exit(1);
+	}
+}
+
 void Parser::exp()
 {
+	
+}
 
+void Parser::T()
+{
+	string token = getToken();
+	if (token == "+" || token == "-" || token == "*" || token == "/")
+		exp();
+}
+
+void Parser::U()
+{
+	string token = getToken();
+	if (token == "==" || token == "!=" || token == ">"
+		|| token == "<" || token == "<=" || token == ">=")
+	{
+		exp();
+	}
+}
+
+void Parser::V()
+{
+	string token = getToken();
+	if (token == "+" || token == "-" || token == "*" || token == "/")
+	{
+		str = token + " " + str;
+		T();
+		V();
+	} else
+		str = token + " " + str;
+}
+
+void Parser::X()
+{
+	string token = getToken();
+	if (token == "==" || token == "!=" || token == ">" || token == "<"
+		|| token == ">=" || token == "<=")
+	{
+		str = token + " " + str;
+		U();
+		X();
+	} else
+		str = token + " " + str;
 }
 
 void Parser::arithexp()
 {
 	string token = getToken();
 	if (is_integer(token) || is_float(token))
-		return;
+		V();
 	else
 	{
 		str = token + " " + str; // Put the token back (not an int or float)
-		exp();
-		token = getToken();
-		if (token == "+" || token == "-" || token == "*" || token == "/")
-			exp();
-		else
-		{
-			cout << "Arithmetic syntax error! Missing +, -, *, or /." << endl;
-			exit(1);
-		}
+		boolexp();
+		T();
+		V();
 	}
 }
 
@@ -557,26 +627,22 @@ void Parser::boolexp()
 {
 	string token = getToken();
 	if (is_boolean(token))
-		return;
-	else
-	{
+		X();
+	else {
 		str = token + " " + str; // Put the token back (not a boolean)
-		exp();
-		token = getToken();
-		if (token == "==" || token == "!=" || token == ">" ||
-			token == "<" || token == ">=" || token == "<=")
-		{
-			exp();
-		} else {
-			cout << "Boolean expression syntax error! Missing ==, !=, >, <, >=, or <=." << endl;
-			exit(1);
-		}
+		arithexp();
+		U();
+		X();
 	}
 }
 
-void Parser::arithval()
+void Parser::stringexp()
 {
+	string1();
 
+	string token = getToken();
+	if (token == "+")
+		stringexp();
 }
 
 void Parser::var()
@@ -733,7 +799,7 @@ void Parser::dimens()
 
 void Parser::stringword()
 {
-
+	
 }
 
 void Parser::string1()
@@ -829,15 +895,16 @@ bool Parser::character(string s)
 	return true;
 }
 
-bool Parser::symbols(string s)
+bool Parser::is_symbol(string s)
 {
 	string valid = ",<.>/?;:\'\"\\|]}[{=+-_)(*&^%$#@!~`";
 
 	if (s.length() == 0)
 		return false;
 
-	if (string::npos != valid.find(s))
-		return true;
+	for (int i = 0; i < s.length(); i++)
+		if (string::npos != valid.find(s[i]))
+			return true;
 	return false;
 }
 

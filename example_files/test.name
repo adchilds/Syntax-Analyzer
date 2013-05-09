@@ -1,5 +1,6 @@
 use java.util.Random ;
 use javax.swing ;
+use Test ;
 
 obj Test ->
 

@@ -109,11 +109,23 @@ class Parser
 
 		void import();
 
+		void assign();
+
 		void exp();
 
 		void arithexp();
 
 		void boolexp();
+
+		void stringexp();
+
+		void T();
+
+		void U();
+
+		void X();
+
+		void V();
 
 		void arithval();
 
@@ -129,7 +141,10 @@ class Parser
 
 		void character();
 
-		void symbols();
+		/**
+		 * Checks to see if the given symbol(s) match a valid symbol
+		 */
+		bool is_symbol(string);
 
 		void stringword();
 
