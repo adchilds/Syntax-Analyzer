@@ -127,6 +127,8 @@ class Parser
 
 		void V();
 
+		void Z();
+
 		void arithval();
 
 		void var();
