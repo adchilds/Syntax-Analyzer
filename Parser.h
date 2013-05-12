@@ -188,6 +188,12 @@ class Parser
 		bool symbols(string);
 
 		/**
+		 * Checks to see if the given string has the format of a
+		 * string allowed by the grammar.
+		 */
+		bool is_string(string);
+
+		/**
 		 * Checks to see if the given string is an integer.
 		 *
 		 * @param string: the string to match against

@@ -133,10 +133,14 @@ void Parser::obj()
 		if (token == "->")
 		{
 			token = getToken();
-			while (token == "func")
+
+			while (token == "func" || token == "any")
 			{
 				str = token + " " + str;
-				funclist();
+				if (token == "any")
+					dec();
+				else
+					funclist();
 				token = getToken();
 			}
 			str = token + " " + str;
@@ -314,8 +318,9 @@ void Parser::if1()
 				{
 					str = token + " " + str;
 					else1();
+				} else {
+					str = token + " " + str;
 				}
-				str = token + " " + str;
 			} else {
 				cout << "Missing ; in if statement." << endl;
 				exit(1);
@@ -605,8 +610,13 @@ void Parser::return1()
 		token = getToken();
 		if (token != ";")
 		{
+			string temp = getToken();
+			str = temp + " " + str;
 			str = token + " " + str;
-			exp();
+			if (temp == ";")
+				id();
+			else
+				exp();
 			token = getToken();
 			if (token != ";")
 			{
@@ -650,18 +660,20 @@ void Parser::assign()
 	if (token == "=")
 	{
 		token = getToken();
-		if (character(token))
+		if (character(token) || token[0] == '\"')
 		{
-			str = token + " " + str;
+			cout << "PUTTING BACK: " << token << endl;
+			str = token + " " + str; // Put back for stringexp -> string1
 			stringexp();
 			token = getToken();
 			if (token != ";")
 			{
+				cout << "TOKEN: " << token << endl;
 				cout << "Missing ; in assignment." << endl;
 				exit(1);
 			}
 		} else {
-			str = token + " " + str;
+			str = token + " " + str; // Put back for exp
 			exp();
 			token = getToken();
 			if (token !=  ";")
@@ -688,6 +700,11 @@ void Parser::exp()
 	{
 		str = token + " " + str;
 		boolexp();
+	}
+	else if (is_string(token))
+	{
+		str = token + " " + str;
+		stringexp();
 	} else {
 		cout << "Invalid expression: " << token << endl;
 		exit(1);
@@ -787,6 +804,8 @@ void Parser::stringexp()
 	string token = getToken();
 	if (token == "+")
 		stringexp();
+	else
+		str = token + " " + str;
 }
 
 void Parser::var()
@@ -968,21 +987,24 @@ void Parser::multiarr()
 
 void Parser::stringword()
 {
+// THIS NEEDS TO BE FIXED
+// THIS GETS things after our string, such as ; (a valid symbol for a string)!
+/*
 	string token = getToken();
 	if (character(token) || is_symbol(token))
 		stringword();
 	else
 		str = token + " " + str;
+*/
 }
 
 void Parser::string1()
 {
 	string token = getToken();
-	if (token == "\"")
+	if (token[0] == '\"')
 	{
 		stringword();
-		token = getToken();
-		if (token != "\"")
+		if (token[token.length()-1] != '\"')
 		{
 			cout << "Missing closing \" in string declaration." << endl;
 			exit(1);
@@ -1095,7 +1117,7 @@ bool Parser::character(string s)
 
 bool Parser::is_symbol(string s)
 {
-	string valid = ",<.>/?;:\'\"\\|]}[{=+-_)(*&^%$#@!~`";
+	string valid = " ,<.>/?;:\'\"\\|]}[{=+-_)(*&^%$#@!~`";
 
 	if (s.length() == 0)
 		return false;
@@ -1104,6 +1126,13 @@ bool Parser::is_symbol(string s)
 		if (string::npos != valid.find(s[i]))
 			return true;
 	return false;
+}
+
+bool Parser::is_string(string s)
+{
+	if (s[0] != '\"' && s[s.length()-1] != '\"')
+		return false;
+	return true;
 }
 
 bool Parser::is_integer(string s)
