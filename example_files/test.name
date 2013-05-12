@@ -3,5 +3,44 @@ use javax.swing ;
 use Test ;
 
 obj Test ->
+	func test_if ( ) ->
+		if 5 <= 10 ->
+			z = 5 ;
+		;
+		elseif 6 >= 10 ->
 
+		;
+	;
+
+	func test_arrays ( ) ->
+		arr test1 [ 7 ] ;
+		arr test2 [ 8 ] [ 9 ] ;
+		arr test3 -> 7 , 8 , 9 | 10 , 11 , 12 ;
+		arr test4 -> 1 , 2 , 3 , 4 |
+					 5 , 6 , 7 , 8 |
+					 9 , 10 , 11 , 12 |
+					 13 , 14 , 15 , 16 ; 
+	;
+
+	func test_foreach ( ) ->
+
+	;
+
+	func test_while ( ) ->
+		while true ->
+
+		;
+
+		while false ->
+
+		;
+
+		while x == 5 ->
+
+		;
+	;
+
+	func test_functions ( any x , any y , any z ) ->
+		
+	;
 ;
