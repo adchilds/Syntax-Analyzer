@@ -14,6 +14,9 @@ using namespace std;
 
 Parser::Parser()
 {
+	translation = "";
+	temp_translation = "";
+	temp_id = "";
 	string s; // String to parse
 
 	cout << "Please enter a valid string to parse: " << endl;
@@ -25,6 +28,9 @@ Parser::Parser()
 
 Parser::Parser(string s)
 {
+	translation = "";
+	temp_translation = "";
+	temp_id = "";
 	ifstream ifs(s.c_str());
 	if (ifs.is_open())
 	{
@@ -52,6 +58,48 @@ int Parser::min(int a, int b, int c)
 	else if (b < c)
 		return b;
 	return c;
+}
+
+string Parser::get_temp_token()
+{
+	// Check for " " and "\n"
+	int space = temp_translation.find(" ");
+	int tab = temp_translation.find("\t");
+	int nl = temp_translation.find("\n");
+
+	int v = min(space, tab, nl);
+
+	string temp = "";
+	if (v != string::npos) // Space, tab, or newline found
+	{
+		temp = temp_translation.substr(0, v);
+		temp_translation = temp_translation.substr((v+1), temp_translation.length());
+
+		// Ensure that the string is not empty, if it is, return the last token
+		if (temp_translation.length() == 0)
+		{
+			cout << temp << endl;
+			return temp;
+		}
+		// Check for more spaces, tabs, and newlines
+		char t = lookahead();
+		while(isspace(t))
+		{
+			// Remove t from str
+			temp_translation = temp_translation.substr(1, temp_translation.length());
+
+			if (temp_translation.length() > 0)
+				t = lookahead();
+			else
+				break;
+		}
+	} else { // Space, tab, or newline NOT found
+		temp = temp_translation;
+		temp_translation = "";
+	}
+
+	cout << temp << endl;
+	return temp;
 }
 
 string Parser::getToken()
@@ -117,6 +165,7 @@ void Parser::uses()
 	string token = getToken();
 	if (token == "use")
 	{
+		translation.append("import ");
 		use();
 		uses();
 	} else
@@ -128,16 +177,18 @@ void Parser::obj()
 	string token = getToken();
 	if (token == "obj")
 	{
+		translation.append("class ");
 		id();
+		translation.append(temp_id); // Class name
 		token = getToken();
 		if (token == "->")
 		{
+			translation.append("{ "); // Start class
 			token = getToken();
-
-			while (token == "func" || token == "any")
+			while (token == "func" || token == "any" || token == "def")
 			{
 				str = token + " " + str;
-				if (token == "any")
+				if (token == "any" || token == "def")
 					dec();
 				else
 					funclist();
@@ -147,17 +198,20 @@ void Parser::obj()
 			token = getToken();
 			if (token != ";")
 			{
-				cout << "; is missing in object definition." << endl;
+				cout << "TOKEN: " << token << endl;
+				cout << "Missing ; in object definition." << endl;
 				exit(1);
 			}
 		} else {
-			cout << "-> is missing in object definition." << endl;
+			cout << "Missing -> in object definition." << endl;
 			exit(1);
 		}
 	} else {
 		cout << "Object definition missing." << endl;
 		exit(1);
 	}
+	translation.append("}"); // End class
+	cout << translation << endl;
 }
 
 void Parser::stm()
@@ -275,6 +329,14 @@ void Parser::stmlist()
 			str = token + " " + str;
 			assign();
 			stmlist();
+		}
+		// Check if it's a method call
+		else if (temp == "(" || temp == ".")
+		{
+			str = temp + " " + str;
+			str = token + " " + str;
+			method();
+			stmlist();
 		} else {
 			str = temp + " " + str;
 			str = token + " " + str;
@@ -295,7 +357,7 @@ void Parser::if1()
 			string temp = getToken();
 			while (token == "if" || token == "for" || token == "foreach" || token == "while" ||
 				token == "exec" || token == "return" || token == "any" || token == "def" ||
-				token == "arr" || temp == "=")
+				token == "arr" || temp == "=" || temp == "(" || temp == ".")
 			{
 				str = temp + " " + str;
 				str = token + " " + str;
@@ -346,7 +408,7 @@ void Parser::elseif()
 			string temp = getToken();
 			while (token == "if" || token == "for" || token == "foreach" || token == "while" ||
 					token == "exec" || token == "return" || token == "any" || token == "def" ||
-					token == "arr" || temp == "=")
+					token == "arr" || temp == "=" || temp == "(" || temp == ".")
 			{
 				str = temp + " " + str;
 				str = token + " " + str;
@@ -369,8 +431,9 @@ void Parser::elseif()
 				{
 					str = token + " " + str;
 					else1();
+				} else {
+					str = token + " " + str;
 				}
-				str = token + " " + str;
 			} else {
 				cout << "Missing ; in if statement." << endl;
 				exit(1);
@@ -394,7 +457,7 @@ void Parser::else1()
 			string temp = getToken();
 			while (token == "if" || token == "for" || token == "foreach" || token == "while" ||
 				token == "exec" || token == "return" || token == "any" || token == "def" ||
-				token == "arr" || temp == "=")
+				token == "arr" || temp == "=" || temp == "(" || temp == ".")
 			{
 				str = temp + " " + str;
 				str = token + " " + str;
@@ -441,7 +504,7 @@ void Parser::for1()
 						string temp = getToken();
 						while (token == "if" || token == "for" || token == "foreach" || token == "while" ||
 							token == "exec" || token == "return" || token == "any" || token == "def" ||
-							token == "arr" || temp == "=")
+							token == "arr" || temp == "=" || temp == "(" || temp == ".")
 						{
 							str = temp + " " + str;
 							str = token + " " + str;
@@ -506,8 +569,20 @@ void Parser::foreach()
 				token = getToken();
 				if (token == "->")
 				{
-					stmlist();
-
+					token = getToken();
+					string temp = getToken();
+					while (token == "if" || token == "for" || token == "foreach" || token == "while" ||
+							token == "exec" || token == "return" || token == "any" || token == "def" ||
+							token == "arr" || temp == "=" || temp == "(" || temp == ".")
+					{
+						str = temp + " " + str;
+						str = token + " " + str;
+						stmlist();
+						token = getToken();
+						temp = getToken();
+					}
+					str = temp + " " + str;
+					str = token + " " + str;
 					token = getToken();
 					if (token != ";")
 					{
@@ -542,7 +617,7 @@ void Parser::while1()
 			string temp = getToken();
 			while (token == "if" || token == "for" || token == "foreach" || token == "while" ||
 					token == "exec" || token == "return" || token == "any" || token == "def" ||
-					token == "arr" || temp == "=")
+					token == "arr" || temp == "=" || temp == "(" || temp == ".")
 			{
 				str = temp + " " + str;
 				str = token + " " + str;
@@ -573,7 +648,20 @@ void Parser::exec()
 		token = getToken();
 		if (token == "->")
 		{
-			stmlist();
+			token = getToken();
+			string temp = getToken();
+			while (token == "if" || token == "for" || token == "foreach" || token == "while" ||
+					token == "exec" || token == "return" || token == "any" || token == "def" ||
+					token == "arr" || temp == "=" || temp == "(" || temp == ".")
+			{
+				str = temp + " " + str;
+				str = token + " " + str;
+				stmlist();
+				token = getToken();
+				temp = getToken();
+			}
+			str = temp + " " + str;
+			str = token + " " + str;
 			token = getToken();
 			if (token == ";")
 			{
@@ -640,6 +728,7 @@ void Parser::use()
 				exit(1);
 			}
 		}
+		translation.append(token);
 	} else {
 		cout << "Invalid import: " << token << endl;
 		exit(1);
@@ -650,6 +739,7 @@ void Parser::use()
 		cout << "Missing ; in use statement." << endl;
 		exit(1);
 	}
+	translation.append(token + " ");
 }
 
 void Parser::assign()
@@ -688,21 +778,60 @@ void Parser::assign()
 	}
 }
 
+void Parser::method()
+{
+	id();
+
+	string token = getToken();
+    if (token == "(")
+	{
+		token = getToken();
+		if (token == ")")
+		{
+			token = getToken();
+			if (token != ";")
+			{
+				cout << "Missing ; in method call." << endl;
+				exit(1);
+			}
+		} else {
+			parameters();
+			token = getToken();
+			if (token == ")")
+			{
+				token = getToken();
+				if (token != ";")
+				{
+					cout << "Missing ; in method call." << endl;
+					exit(1);
+				}
+			}
+		}
+	}
+	else if (token == ".")
+	{
+		method();
+	}
+}
+
 void Parser::exp()
 {
 	string token = getToken();
-	if (is_integer(token) || is_float(token))
+	if (is_integer(token) || is_float(token) || character(token))
 	{
+		temp_translation.append(token + " ");
 		str = token + " " + str;
 		arithexp();
 	}
-	else if (is_boolean(token))
+	else if (is_boolean(token) || character(token))
 	{
+		temp_translation.append(token);
 		str = token + " " + str;
 		boolexp();
 	}
-	else if (is_string(token))
+	else if (is_string(token) || character(token))
 	{
+		temp_translation.append(token);
 		str = token + " " + str;
 		stringexp();
 	} else {
@@ -715,7 +844,10 @@ void Parser::T()
 {
 	string token = getToken();
 	if (token == "+" || token == "-" || token == "*" || token == "/")
+	{
+		temp_translation.append(token + " ");
 		exp();
+	}
 }
 
 void Parser::U()
@@ -724,6 +856,7 @@ void Parser::U()
 	if (token == "==" || token == "!=" || token == ">"
 		|| token == "<" || token == "<=" || token == ">=")
 	{
+		temp_translation.append(token + " ");
 		exp();
 	}
 }
@@ -771,9 +904,9 @@ void Parser::arithexp()
 {
 	string token = getToken();
 	if (is_integer(token) || is_float(token) || character(token))
-		V();
-	else
 	{
+		V();
+	} else {
 		str = token + " " + str; // Put the token back (not an int or float)
 		boolexp();
 		T();
@@ -827,6 +960,7 @@ void Parser::dec()
 		if (token == "=")
 		{
 			exp();
+			cout << "TEMP_TRANSLATE: " << temp_translation << endl;
 			token = getToken();
 			if (token != ";")
 			{
@@ -839,6 +973,27 @@ void Parser::dec()
 			cout << "Incorrect syntax for variable declaration." << endl;
 			exit(1);
 		}
+
+		// Variables
+		bool f = false;
+		string temp = "";
+		while (true)
+		{
+			string t = get_temp_token();
+			if (t == "")
+				break;
+			if (is_float(t) || character(t))
+			{
+				f = true;
+				temp = temp + t + " " + temp_translation;
+				break;
+			}
+			temp.append(t + " ");
+		}
+		if (f)
+			translation.append("Float " + temp_id + "= new Float( " + temp + "); ");
+		else
+			translation.append("Integer " + temp_id + "= new Integer( " + temp + "); ");
 	}
 	else if (token == "def")
 	{
@@ -857,10 +1012,32 @@ void Parser::dec()
 			cout << "Missing = in constant declaration." << endl;
 			exit(1);
 		}
+
+		// Constants
+		bool f = false;
+		string temp = "";
+		while (true)
+		{
+			string t = get_temp_token();
+			if (t == "")
+				break;
+			if (is_float(t) || character(t))
+			{
+				f = true;
+				temp = temp + t + " " + temp_translation;
+				break;
+			}
+			temp.append(t + " ");
+		}
+		if (f)
+			translation.append("final Float " + temp_id + "= new Float( " + temp + "); ");
+		else
+			translation.append("final Integer " + temp_id + "= new Integer( " + temp + "); ");
 	} else {
 		cout << "Incorrect syntax for variable declaration." << endl;
 		exit(1);
 	}
+	cout << "TRANSLATION: " << translation << endl;
 }
 
 void Parser::id()
@@ -881,6 +1058,7 @@ void Parser::id()
 		cout << "Invalid identifier: " << token << endl;
 		exit(1);
 	}
+	temp_id = token + " ";
 }
 
 void Parser::array()
@@ -1028,6 +1206,7 @@ void Parser::function()
 
 	if (token == "func")
 	{
+//		translation.append("
 		id();
 		token = getToken();
 		if (token == "(")
@@ -1043,7 +1222,7 @@ void Parser::function()
 					string temp = getToken();
 					while (token == "if" || token == "for" || token == "foreach" || token == "while" ||
 							token == "exec" || token == "return" || token == "any" || token == "def" ||
-							token == "arr" || temp == "=")
+							token == "arr" || temp == "=" || temp == "(" || temp == ".")
 					{
 						str = temp + " " + str;
 						str = token + " " + str;
@@ -1056,6 +1235,7 @@ void Parser::function()
 					token = getToken();
 					if (token != ";")
 					{
+						cout << "TOKEN: " << token << endl;
 						cout << "Missing ; in function definition" << endl;
 						exit(1);
 					}

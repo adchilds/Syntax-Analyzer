@@ -72,6 +72,8 @@ class Parser
 		 */
 		string getToken();
 
+		string get_temp_token();
+
 		char lookahead();
 
 		// CFG functions
@@ -164,6 +166,7 @@ class Parser
 
 		void multiarr();
 
+		void method();
 
 		/**
 		 * Checks to see if the given number matches a valid value
@@ -216,6 +219,12 @@ class Parser
 		bool is_boolean(string);
 
 		string str; // The string to be parsed
+
+		string translation; // The string that holds the Java equivalent of our code
+
+		string temp_translation; // Holds temporary translation values
+
+		string temp_id; // Holds the temporary id of a variable
 };
 
 #endif
