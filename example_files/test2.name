@@ -42,7 +42,6 @@ obj Test2 ->
 	;
 
 	func test7 ( ) ->
-		System . out . println ( any test , any test2 ) ;
-		this . print ( ) ;
+		System . out . println ( ) ;
 	;
 ;
