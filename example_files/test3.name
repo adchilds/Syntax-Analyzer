@@ -1,8 +1,0 @@
-use java.util.Random ;
-
-obj Test3 ->
-
-	func main ( ) ->
-		System . out . println ( ) ;
-	;
-;

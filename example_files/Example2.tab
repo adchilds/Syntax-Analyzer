@@ -1,6 +1,10 @@
 obj Test2 ->
 	def global = 5 + x - 8 ;
 
+	func main ( ) ->
+		test2 ( ) ;
+	;
+
 	func test ( ) ->
 		return ;
 	;
