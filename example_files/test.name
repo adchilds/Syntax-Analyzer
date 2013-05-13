@@ -9,9 +9,10 @@ obj Test ->
 		if 5 <= 10 ->
 			z = 5 ;
 		;
-		if 6 >= 10 ->
+		elseif 6 >= 10 ->
 
 		;
+		System . out . println ( ) ;
 	;
 
 	func test_arrays ( ) ->
@@ -32,7 +33,12 @@ obj Test ->
 
 	func test_foreach ( ) ->
 		foreach any test = 0 in test2 ->
+			if x == 5 ->
 
+			;
+			if y == 6 ->
+
+			;
 		;
 	;
 
@@ -52,7 +58,12 @@ obj Test ->
 
 	func test_exec ( ) ->
 		exec ->
+			if x == 5 ->
 
+			;
+			if y == 6 ->
+
+			;
 		; while true ;
 	;
 
