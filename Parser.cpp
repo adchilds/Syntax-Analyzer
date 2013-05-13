@@ -91,7 +91,7 @@ string Parser::get_temp_token(string* s)
 		// Ensure that the string is not empty, if it is, return the last token
 		if (s->length() == 0)
 		{
-			cout << temp << endl;
+//			cout << temp << endl;
 			return temp;
 		}
 		// Check for more spaces, tabs, and newlines
@@ -111,7 +111,7 @@ string Parser::get_temp_token(string* s)
 		*s = "";
 	}
 
-	cout << temp << endl;
+//	cout << temp << endl;
 	return temp;
 }
 
@@ -133,7 +133,7 @@ string Parser::getToken()
 		// Ensure that the string is not empty, if it is, return the last token
 		if (str.length() == 0)
 		{
-			cout << temp << endl;
+//			cout << temp << endl;
 			return temp;
 		}
 		// Check for more spaces, tabs, and newlines
@@ -153,7 +153,7 @@ string Parser::getToken()
 		str = "";
 	}
 
-	cout << temp << endl;
+//	cout << temp << endl;
 	return temp;
 }
 
@@ -211,7 +211,6 @@ void Parser::obj()
 			token = getToken();
 			if (token != ";")
 			{
-				cout << "TOKEN: " << token << endl;
 				cout << "Missing ; in object definition." << endl;
 				exit(1);
 			}
@@ -919,6 +918,7 @@ void Parser::method()
 			}
 			translation.append("; ");
 		} else {
+			str = token + " " + str;
 			parameters();
 			token = getToken();
 			if (token == ")")
@@ -1395,6 +1395,7 @@ void Parser::function()
 					token = getToken();
 					if (token != ";")
 					{
+						cout << "TOKEN: " << token << endl;
 						cout << "Missing ; in function definition" << endl;
 						exit(1);
 					}
@@ -1418,20 +1419,10 @@ void Parser::parameters()
 	string token = getToken();
 	if (token == "any")
 	{
-		token = getToken(); // any or def
-		string temp = getToken(); // name
-		string temp2 = getToken(); // =
-		string temp3 = getToken(); // variable
-		// Put them back
-		str = token + " " + temp + " " + temp2 + " " + temp3 + " " + str;
-		if (is_integer(temp3))
-			translation.append("int " + temp);
-		else if (is_float(temp3))
-			translation.append("float " + temp);
-		else if (is_boolean(temp3))
-			translation.append("boolean " + temp);
-		else if (is_string(temp3))
-			translation.append("String " + temp);
+		string temp = getToken();
+		translation.append("Object " + temp);
+		str = temp + " " + str;
+		str = token + " " + str;
 		var();
 		token = getToken();
 		if (token == ",")
