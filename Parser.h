@@ -57,7 +57,15 @@ class Parser
 		 */
 		void print();
 
+		/**
+		 * Prints the translated TAB -> Java code.
+		 */
 		void translated();
+
+		/**
+		 * Compiles the Java code to bytecode with a System call.
+		 */
+		void compile();
 
 	private:
 		/**
@@ -77,6 +85,13 @@ class Parser
 		string get_temp_token(string*);
 
 		char lookahead();
+
+		/**
+		 * Executes the given system command.
+		 *
+		 * @param char* - The system command to execute
+		 */
+		string execute(char*);
 
 		// CFG functions
 		void program();
@@ -221,6 +236,8 @@ class Parser
 		bool is_boolean(string);
 
 		string str; // The string to be parsed
+
+		string classname; // The class name (to be used as the file name)
 
 		string translation; // The string that holds the Java equivalent of our code
 

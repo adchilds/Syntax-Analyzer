@@ -20,6 +20,7 @@ Parser::Parser()
 	temp_return = "";
 	temp_statements = "";
 	temp_parameters = "";
+	classname = "";
 
 	string s; // String to parse
 
@@ -27,7 +28,7 @@ Parser::Parser()
 	getline(cin, s);
 	str = s;
 
-	cout << str << endl;
+//	cout << str << endl;
 }
 
 Parser::Parser(string s)
@@ -38,6 +39,7 @@ Parser::Parser(string s)
 	temp_return = "";
 	temp_statements = "";
 	temp_parameters = "";
+	classname = "";
 
 	ifstream ifs(s.c_str());
 	if (ifs.is_open())
@@ -47,7 +49,47 @@ Parser::Parser(string s)
 	} else
 		str = s;
 
-	cout << str << endl;
+//	cout << str << endl;
+}
+
+void Parser::compile()
+{
+	classname = classname.substr(0, classname.length()-1);
+	string filename = classname + ".java";
+
+	// Create the file
+	ofstream file; // (reading and writing)
+	file.open((const char*)filename.c_str());
+	file << translation;
+	file.close();
+
+	// Compile/remove the file
+	#if defined (WIN32)
+	execute((char*)("javac " + filename).c_str());
+	#elif defined (WIN64)
+	execute((char*)("javac " + filename).c_str());
+	#elif defined(__linux__)
+	execute((char*)("javac " + filename).c_str());
+	execute((char*)("rm " + filename).c_str());
+	#elif defined(__APPLE__)
+	execute((char*)("javac " + filename).c_str());
+	execute((char*)("rm " + filename).c_str());
+	#endif
+}
+
+string Parser::execute(char* cmd)
+{
+	FILE* pipe = popen(cmd, "r");
+	if (!pipe) return "Error executing system command";
+	char buffer[128];
+	std::string result = "";
+	while(!feof(pipe))
+	{
+		if(fgets(buffer, 128, pipe) != NULL)
+			result += buffer;
+	}
+	pclose(pipe);
+	return result;
 }
 
 void Parser::translated()
@@ -192,6 +234,7 @@ void Parser::obj()
 	{
 		translation.append("class ");
 		id();
+		classname = temp_id;
 		translation.append(temp_id); // Class name
 		token = getToken();
 		if (token == "->")
@@ -1334,6 +1377,8 @@ void Parser::function()
 	if (token == "func")
 	{
 		id();
+		string method_name = temp_id;
+		method_name = method_name.substr(0, method_name.length()-1);
 		token = getToken();
 		if (token == "(")
 		{
@@ -1356,30 +1401,26 @@ void Parser::function()
 						{
 							string val = get_temp_token(&temp_return);
 							val = get_temp_token(&temp_return);
-							if (is_integer(val) && val.length() > 0)
+							if (method_name == "main")
 							{
-								translation.append("public Integer " + temp_id + "( " + temp_parameters + " ) { ");
-								stmlist();
-								translation.append("} ");
-							}
-							else if (is_float(val) && val.length() > 0)
-							{
-								translation.append("public Float " + temp_id + "( " + temp_parameters + " ) { ");
-								stmlist();
-								translation.append("} ");
-							}
-							else if (is_boolean(val) && val.length() > 0)
-							{
-								translation.append("public Boolean " + temp_id + "( " + temp_parameters + " ) { ");
-								stmlist();
-								translation.append("} ");
+								translation.append("public static void main(String[] args) { ");
 							} else {
-								translation.append("public void " + temp_id + "( " + temp_parameters + " ) { ");
+								if (is_integer(val) && val.length() > 0)
+									translation.append("public Integer " + temp_id + "( " + temp_parameters + " ) { ");
+								else if (is_float(token) && val.length() > 0)
+									translation.append("public Float " + temp_id + "( " + temp_parameters + " ) { ");
+								else if (is_boolean(val) && val.length() > 0)
+									translation.append("public Boolean " + temp_id + "( " + temp_parameters + " ) { ");
+								else
+									translation.append("public void " + temp_id + "( " + temp_parameters + " ) { ");
 								stmlist();
 								translation.append("} ");
 							}
 						} else {
-							translation.append("public void " + temp_id + "( " + temp_parameters + " ) { ");
+							if (method_name == "main")
+								translation.append("public static void main(String[] args) { ");
+							else
+								translation.append("public void " + temp_id + "( " + temp_parameters + " ) { ");
 							stmlist();
 							translation.append("} ");
 						}
@@ -1395,7 +1436,6 @@ void Parser::function()
 					token = getToken();
 					if (token != ";")
 					{
-						cout << "TOKEN: " << token << endl;
 						cout << "Missing ; in function definition" << endl;
 						exit(1);
 					}

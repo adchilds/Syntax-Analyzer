@@ -14,15 +14,17 @@ int main(int argc, const char* argv[])
 {
 	if (argc > 1) // File supplied
 	{
-		cout << "FILE SUPPLIED: " << argv[1] << endl;
+//		cout << "FILE SUPPLIED: " << argv[1] << endl;
 
 		Parser p(argv[1]);
 		p.parse();
-		p.translated();
+//		p.translated();
+		p.compile();
 	} else { // String supplied
 		Parser p;
 		p.parse();
-		p.translated();
+//		p.translated();
+		p.compile();
 	}
 
 	return 0;
