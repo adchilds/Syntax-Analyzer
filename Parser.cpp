@@ -17,6 +17,10 @@ Parser::Parser()
 	translation = "";
 	temp_translation = "";
 	temp_id = "";
+	temp_return = "";
+	temp_statements = "";
+	temp_parameters = "";
+
 	string s; // String to parse
 
 	cout << "Please enter a valid string to parse: " << endl;
@@ -31,6 +35,10 @@ Parser::Parser(string s)
 	translation = "";
 	temp_translation = "";
 	temp_id = "";
+	temp_return = "";
+	temp_statements = "";
+	temp_parameters = "";
+
 	ifstream ifs(s.c_str());
 	if (ifs.is_open())
 	{
@@ -40,6 +48,11 @@ Parser::Parser(string s)
 		str = s;
 
 	cout << str << endl;
+}
+
+void Parser::translated()
+{
+	cout << translation << endl;
 }
 
 int Parser::min(int a, int b, int c)
@@ -60,23 +73,23 @@ int Parser::min(int a, int b, int c)
 	return c;
 }
 
-string Parser::get_temp_token()
+string Parser::get_temp_token(string* s)
 {
 	// Check for " " and "\n"
-	int space = temp_translation.find(" ");
-	int tab = temp_translation.find("\t");
-	int nl = temp_translation.find("\n");
+	int space = s->find(" ");
+	int tab = s->find("\t");
+	int nl = s->find("\n");
 
 	int v = min(space, tab, nl);
 
 	string temp = "";
 	if (v != string::npos) // Space, tab, or newline found
 	{
-		temp = temp_translation.substr(0, v);
-		temp_translation = temp_translation.substr((v+1), temp_translation.length());
+		temp = s->substr(0, v);
+		*s = s->substr((v+1), s->length());
 
 		// Ensure that the string is not empty, if it is, return the last token
-		if (temp_translation.length() == 0)
+		if (s->length() == 0)
 		{
 			cout << temp << endl;
 			return temp;
@@ -86,16 +99,16 @@ string Parser::get_temp_token()
 		while(isspace(t))
 		{
 			// Remove t from str
-			temp_translation = temp_translation.substr(1, temp_translation.length());
+			*s = s->substr(1, s->length());
 
-			if (temp_translation.length() > 0)
+			if (s->length() > 0)
 				t = lookahead();
 			else
 				break;
 		}
 	} else { // Space, tab, or newline NOT found
-		temp = temp_translation;
-		temp_translation = "";
+		temp = *s;
+		*s = "";
 	}
 
 	cout << temp << endl;
@@ -211,7 +224,6 @@ void Parser::obj()
 		exit(1);
 	}
 	translation.append("}"); // End class
-	cout << translation << endl;
 }
 
 void Parser::stm()
@@ -349,10 +361,14 @@ void Parser::if1()
 	string token = getToken();
 	if (token == "if")
 	{
+		translation.append("if (");
 		boolexp();
+		translation.append(temp_translation);
+		temp_translation = "";
 		token = getToken();
 		if (token == "->")
 		{
+			translation.append(") { ");
 			token = getToken();
 			string temp = getToken();
 			while (token == "if" || token == "for" || token == "foreach" || token == "while" ||
@@ -370,6 +386,7 @@ void Parser::if1()
 			token = getToken();
 			if (token == ";")
 			{
+				translation.append(" } ");
 				token = getToken();
 				if (token == "elseif")
 				{
@@ -400,10 +417,14 @@ void Parser::elseif()
 
 	if (token == "elseif")
 	{
+		translation.append("else if (");
 		boolexp();
+		translation.append(temp_translation);
+		temp_translation = "";
 		token = getToken();
 		if (token == "->")
 		{
+			translation.append(") { ");
 			token = getToken();
 			string temp = getToken();
 			while (token == "if" || token == "for" || token == "foreach" || token == "while" ||
@@ -421,6 +442,7 @@ void Parser::elseif()
 			token = getToken();
 			if (token == ";")
 			{
+				translation.append(" } ");
 				token = getToken();
 				if (token == "elseif")
 				{
@@ -450,9 +472,11 @@ void Parser::else1()
 	string token = getToken();
 	if (token == "else")
 	{
+		translation.append("else ");
 		token = getToken();
 		if (token == "->")
 		{
+			translation.append("{ ");
 			token = getToken();
 			string temp = getToken();
 			while (token == "if" || token == "for" || token == "foreach" || token == "while" ||
@@ -473,6 +497,7 @@ void Parser::else1()
 				cout << "Missing ; in else statement." << endl;
 				exit(1);
 			}
+			translation.append(" } ");
 		} else {
 			cout << "Missing -> in else statement." << endl;
 		}
@@ -484,22 +509,68 @@ void Parser::for1()
 	string token = getToken();
 	if (token == "for")
 	{
+		translation.append("for (");
+		token = getToken(); // any or def
+		string temp = getToken(); // name
+		string temp2 = getToken(); // =
+		string temp3 = getToken(); // variable
+		// Put them back
+		str = token + " " + temp + " " + temp2 + " " + temp3 + " " + str;
+		if (is_integer(temp3))
+			translation.append("int " + temp);
+		else if (is_float(temp3))
+		{
+			cout << "Error: cannot loop over a floating point value." << endl;
+			exit(1);
+		}
+		else if (is_boolean(temp3))
+		{
+			cout << "Error: cannot loop over a boolean value." << endl;
+			exit(1);
+		}
+		else if (is_string(temp3))
+		{
+			cout << "Error: cannot loop over a string constant." << endl;
+			exit(1);
+		}
 		var();
 		token = getToken();
 		if (token == "=")
 		{
+			translation.append(" = ");
 			exp();
+			translation.append(temp_translation + "; ");
+			temp_translation = "";
 			token = getToken();
 			if (token == "(")
 			{
+				token = getToken();
+				bool plus = true;
+				if (token == "-")
+					plus = false;
+				str = token + " " + str;
 				inc();
+				string incr = temp_translation;
+				temp_translation = "";
 				token = getToken();
 				if (token == ")")
 				{
+					// Condition
+					translation.append(temp + " <= ");
 					exp();
+					translation.append(temp_translation + "; ");
+					temp_translation = "";
+
+					// Increment
+					if (plus)
+						translation.append(temp + "+=" + incr + ")");
+					else
+						translation.append(temp + "-=" + incr + ")");
+
 					token = getToken();
 					if (token == "->")
 					{
+						translation.append(" { ");
 						token = getToken();
 						string temp = getToken();
 						while (token == "if" || token == "for" || token == "foreach" || token == "while" ||
@@ -520,6 +591,7 @@ void Parser::for1()
 							cout << "Missing ; in for statement." << endl;
 							exit(1);
 						}
+						translation.append(" } ");
 					} else {
 						cout << "Missing -> in for statement." << endl;
 						exit(1);
@@ -556,6 +628,21 @@ void Parser::foreach()
 	string token = getToken();
 	if (token == "foreach")
 	{
+		translation.append("for (");
+		token = getToken(); // any or def
+		string temp = getToken(); // name
+		string temp2 = getToken(); // =
+		string temp3 = getToken(); // variable
+		// Put them back
+		str = token + " " + temp + " " + temp2 + " " + temp3 + " " + str;
+		if (is_integer(temp3))
+			translation.append("int " + temp + " : ");
+		else if (is_float(temp3))
+			translation.append("float " + temp + " : ");
+		else if (is_boolean(temp3))
+			translation.append("boolean " + temp + " : ");
+		else if (is_string(temp3))
+			translation.append("String " + temp + " : ");
 		var();
 		token = getToken();
 		if (token == "=")
@@ -565,10 +652,12 @@ void Parser::foreach()
 			if (token == "in")
 			{
 				id();
-
+				translation.append(temp_id + ")");
+				temp_translation = "";
 				token = getToken();
 				if (token == "->")
 				{
+					translation.append(" { ");
 					token = getToken();
 					string temp = getToken();
 					while (token == "if" || token == "for" || token == "foreach" || token == "while" ||
@@ -589,6 +678,7 @@ void Parser::foreach()
 						cout << "Missing ; in foreach." << endl;
 						exit(1);
 					}
+					translation.append(" } ");
 				} else {
 					cout << "Missing -> in foreach." << endl;
 					exit(1);
@@ -609,10 +699,14 @@ void Parser::while1()
 	string token = getToken();
 	if (token == "while")
 	{
+		translation.append("while (");
 		boolexp();
+		translation.append(temp_translation);
+		temp_translation = "";
 		token = getToken();
 		if (token == "->")
 		{
+			translation.append(") { ");
 			token = getToken();
 			string temp = getToken();
 			while (token == "if" || token == "for" || token == "foreach" || token == "while" ||
@@ -633,6 +727,7 @@ void Parser::while1()
 				cout << "Missing ; in while." << endl;
 				exit(1);
 			}
+			translation.append(" } ");
 		} else {
 			cout << "Missing -> in while." << endl;
 			exit(1);
@@ -645,6 +740,7 @@ void Parser::exec()
 	string token = getToken();
 	if (token == "exec")
 	{
+		translation.append("do { ");
 		token = getToken();
 		if (token == "->")
 		{
@@ -665,16 +761,21 @@ void Parser::exec()
 			token = getToken();
 			if (token == ";")
 			{
+				translation.append( " } ");
 				token = getToken();
 				if (token == "while")
 				{
+					translation.append("while (");
 					boolexp();
+					translation.append(temp_translation);
+					temp_translation = "";
 					token = getToken();
 					if (token != ";")
 					{
 						cout << "Missing ; in exec statement." << endl;
 						exit(1);
 					}
+					translation.append("); ");
 				} else {
 					cout << "Missing \"while\" in exec statement." << endl;
 					exit(1);
@@ -702,9 +803,21 @@ void Parser::return1()
 			str = temp + " " + str;
 			str = token + " " + str;
 			if (temp == ";")
-				id();
-			else
+			{
+				if (is_integer(token) || is_float(token) || is_boolean(token))
+				{
+					exp();
+					temp_return = "return " + temp_translation + ";";
+				} else {
+					id();
+					temp_return = "return " + temp_id + ";";
+				}
+				temp_statements.append(temp_return + " ");
+			} else {
 				exp();
+				temp_return = "return " + temp_translation + ";";
+				temp_statements.append(temp_return + " ");
+			}
 			token = getToken();
 			if (token != ";")
 			{
@@ -712,6 +825,11 @@ void Parser::return1()
 				exit(1);
 			}
 		}
+	}
+	if (temp_return.length() <= 0)
+	{
+		temp_return = "return;";
+		temp_statements.append(temp_return + " ");
 	}
 }
 
@@ -781,35 +899,44 @@ void Parser::assign()
 void Parser::method()
 {
 	id();
-
+	string t = temp_id;
+	t = t.substr(0, t.length()-1);
+	translation.append(t);
+	temp_id = "";
 	string token = getToken();
     if (token == "(")
 	{
+		translation.append("(");
 		token = getToken();
 		if (token == ")")
 		{
+			translation.append(")");
 			token = getToken();
 			if (token != ";")
 			{
 				cout << "Missing ; in method call." << endl;
 				exit(1);
 			}
+			translation.append("; ");
 		} else {
 			parameters();
 			token = getToken();
 			if (token == ")")
 			{
+				translation.append(")");
 				token = getToken();
 				if (token != ";")
 				{
 					cout << "Missing ; in method call." << endl;
 					exit(1);
 				}
+				translation.append("; ");
 			}
 		}
 	}
 	else if (token == ".")
 	{
+		translation.append(".");
 		method();
 	}
 }
@@ -919,6 +1046,7 @@ void Parser::boolexp()
 	string token = getToken();
 	if (is_boolean(token) || character(token))
 	{
+		temp_translation.append( " " + token + " ");
 		X();
 		Z();
 	} else {
@@ -960,7 +1088,6 @@ void Parser::dec()
 		if (token == "=")
 		{
 			exp();
-			cout << "TEMP_TRANSLATE: " << temp_translation << endl;
 			token = getToken();
 			if (token != ";")
 			{
@@ -979,7 +1106,7 @@ void Parser::dec()
 		string temp = "";
 		while (true)
 		{
-			string t = get_temp_token();
+			string t = get_temp_token(&temp_translation);
 			if (t == "")
 				break;
 			if (is_float(t) || character(t))
@@ -1018,7 +1145,7 @@ void Parser::dec()
 		string temp = "";
 		while (true)
 		{
-			string t = get_temp_token();
+			string t = get_temp_token(&temp_translation);
 			if (t == "")
 				break;
 			if (is_float(t) || character(t))
@@ -1037,7 +1164,7 @@ void Parser::dec()
 		cout << "Incorrect syntax for variable declaration." << endl;
 		exit(1);
 	}
-	cout << "TRANSLATION: " << translation << endl;
+	temp_translation = "";
 }
 
 void Parser::id()
@@ -1206,7 +1333,6 @@ void Parser::function()
 
 	if (token == "func")
 	{
-//		translation.append("
 		id();
 		token = getToken();
 		if (token == "(")
@@ -1226,7 +1352,41 @@ void Parser::function()
 					{
 						str = temp + " " + str;
 						str = token + " " + str;
-						stmlist();
+						if (temp_return.length() > 0)
+						{
+							string val = get_temp_token(&temp_return);
+							val = get_temp_token(&temp_return);
+							if (is_integer(val) && val.length() > 0)
+							{
+								translation.append("public Integer " + temp_id + "( " + temp_parameters + " ) { ");
+								stmlist();
+								translation.append("} ");
+							}
+							else if (is_float(val) && val.length() > 0)
+							{
+								translation.append("public Float " + temp_id + "( " + temp_parameters + " ) { ");
+								stmlist();
+								translation.append("} ");
+							}
+							else if (is_boolean(val) && val.length() > 0)
+							{
+								translation.append("public Boolean " + temp_id + "( " + temp_parameters + " ) { ");
+								stmlist();
+								translation.append("} ");
+							} else {
+								translation.append("public void " + temp_id + "( " + temp_parameters + " ) { ");
+								stmlist();
+								translation.append("} ");
+							}
+						} else {
+							translation.append("public void " + temp_id + "( " + temp_parameters + " ) { ");
+							stmlist();
+							translation.append("} ");
+						}
+						temp_id = "";
+						temp_return = "";
+						temp_parameters = "";
+						temp_statements = "";
 						token = getToken();
 						temp = getToken();
 					}
@@ -1235,7 +1395,6 @@ void Parser::function()
 					token = getToken();
 					if (token != ";")
 					{
-						cout << "TOKEN: " << token << endl;
 						cout << "Missing ; in function definition" << endl;
 						exit(1);
 					}
@@ -1259,10 +1418,25 @@ void Parser::parameters()
 	string token = getToken();
 	if (token == "any")
 	{
+		token = getToken(); // any or def
+		string temp = getToken(); // name
+		string temp2 = getToken(); // =
+		string temp3 = getToken(); // variable
+		// Put them back
+		str = token + " " + temp + " " + temp2 + " " + temp3 + " " + str;
+		if (is_integer(temp3))
+			translation.append("int " + temp);
+		else if (is_float(temp3))
+			translation.append("float " + temp);
+		else if (is_boolean(temp3))
+			translation.append("boolean " + temp);
+		else if (is_string(temp3))
+			translation.append("String " + temp);
 		var();
 		token = getToken();
 		if (token == ",")
 		{
+			translation.append(",");
 			parameters();
 		} else
 			str = token + " " + str;
@@ -1319,7 +1493,7 @@ bool Parser::is_integer(string s)
 {
 	for (int i = 0; i < s.length(); i++)
 	{
-		if (isdigit(s[i]))
+		if (isdigit(s[i]) && string(1, s[i]).length() > 0)
 			continue;
 		return false;
 	}

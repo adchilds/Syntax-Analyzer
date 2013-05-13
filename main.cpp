@@ -18,9 +18,11 @@ int main(int argc, const char* argv[])
 
 		Parser p(argv[1]);
 		p.parse();
+		p.translated();
 	} else { // String supplied
 		Parser p;
 		p.parse();
+		p.translated();
 	}
 
 	return 0;

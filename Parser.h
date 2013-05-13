@@ -57,6 +57,8 @@ class Parser
 		 */
 		void print();
 
+		void translated();
+
 	private:
 		/**
 		 * Finds the minimum value between three integers.
@@ -72,7 +74,7 @@ class Parser
 		 */
 		string getToken();
 
-		string get_temp_token();
+		string get_temp_token(string*);
 
 		char lookahead();
 
@@ -225,6 +227,14 @@ class Parser
 		string temp_translation; // Holds temporary translation values
 
 		string temp_id; // Holds the temporary id of a variable
+
+		string temp_return; // Holds the temporary return value
+
+		string temp_statements; // Holds all temporary statements in a stmlist
+
+		string temp2_statements; // Holds all temporary statements for statements
+
+		string temp_parameters; // Holds all temporary parameters of a function
 };
 
 #endif
