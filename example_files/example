@@ -1,0 +1,16 @@
+use java.util.Random ;
+
+obj Example ->
+	def global = 5 + 6 ;
+	
+	func main ( ) ->
+		def local = 9 - 5 ;
+		if local == 4 ->
+			System . out . println ( ) ;
+		;
+
+		for any i = 0 ( + 1 ) 4 ->
+			System . out . println ( ) ;
+		;
+	;
+;
