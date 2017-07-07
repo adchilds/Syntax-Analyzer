@@ -1,0 +1,51 @@
+obj Test2 ->
+	def global = 5 + x - 8 ;
+
+	func main ( ) ->
+		test2 ( ) ;
+	;
+
+	func test ( ) ->
+		return ;
+	;
+
+	func test2 ( ) ->
+		if x == 5 ->
+
+		;
+		elseif y == 10 ->
+
+		;
+		else ->
+			
+		;
+	;
+
+	func test3 ( ) ->
+		for any test = 0 ( + 5 ) 10 ->
+
+		;
+	;
+
+	func test4 ( ) ->
+		foreach any test = 0 in arr ->
+
+		;
+	;
+
+	func test5 ( ) ->
+		while x == 5 ->
+
+		;
+	;
+
+	func test6 ( ) ->
+		exec ->
+
+		; while x == 10 ;
+	;
+
+	func test7 ( ) ->
+		System . out . println ( ) ;
+	;
+;
